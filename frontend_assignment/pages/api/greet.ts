@@ -2,6 +2,7 @@ import Greeter from "artifacts/contracts/Greeters.sol/Greeters.json"
 import { Contract, providers, utils } from "ethers"
 import type { NextApiRequest, NextApiResponse } from "next"
 
+
 // This API can represent a backend.
 // The contract owner is the only account that can call the `greet` function,
 // However they will not be aware of the identity of the users generating the proofs.
@@ -15,8 +16,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const contractOwner = contract.connect(provider.getSigner())
 
     try {
-        await contractOwner.greet(utils.formatBytes32String(greeting), nullifierHash, solidityProof)
 
+        const tx = await contractOwner.greet(
+            utils.formatBytes32String(greeting),
+            nullifierHash,
+            solidityProof
+          )
+
+        const receipt = await tx.wait()
+        console.log("receipt", receipt.events)
+        res.send(receipt.events)
         res.status(200).end()
     } catch (error: any) {
         const { message } = JSON.parse(error.body).error
@@ -25,3 +34,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(500).send(reason || "Unknown error!")
     }
 }
+

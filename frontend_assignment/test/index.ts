@@ -45,6 +45,7 @@ describe("Greeters", function () {
             const transaction = contract.greet(bytes32Greeting, nullifierHash, solidityProof)
 
             await expect(transaction).to.emit(contract, "NewGreeting").withArgs(bytes32Greeting)
+            
         })
     })
 })

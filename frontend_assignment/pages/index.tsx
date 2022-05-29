@@ -3,11 +3,19 @@ import { Strategy, ZkIdentity } from "@zk-kit/identity"
 import { generateMerkleProof, Semaphore } from "@zk-kit/protocols"
 import { providers } from "ethers"
 import Head from "next/head"
-import React from "react"
+import React, { useState } from "react"
 import styles from "../styles/Home.module.css"
+import {useForm} from "react-hook-form";
+import {yupResolver} from "@hookform/resolvers/yup"
+import { FormControl } from '@mui/material';
+import * as yup from "yup"
+import Button from "@mui/material/Button"
+
+
 
 export default function Home() {
     const [logs, setLogs] = React.useState("Connect your wallet and greet!")
+    const [event, setEvent] = useState("Data: N/A");
 
     async function greet() {
         setLogs("Creating your Semaphore identity...")
@@ -56,11 +64,65 @@ export default function Home() {
             setLogs(errorMessage)
         } else {
             setLogs("Your anonymous greeting is onchain :)")
+            try {
+                var data = await response.text();
+                console.log(data)
+                setEvent(data);
+            } catch (err){
+                console.log(err);
+            }
+           
         }
+       
     }
 
+    
+
+    const schema = yup.object().shape({
+        name: yup.string().required(),
+        age: yup.number().positive().required(),
+        address: yup.number().positive().required()
+    })
+
+
+    const {register, handleSubmit, formState: {errors}} = useForm({
+        mode: 'onSubmit',
+        resolver: yupResolver(schema),
+    })
+    
+
+
+    const submit = (data : any) => {
+        console.log(data);
+    }
+    
+
+
+    
+    
     return (
         <div className={styles.container}>
+            
+            <form onSubmit = {handleSubmit(submit)} className={styles.form}>
+                <div>
+                    <label htmlFor="name" className = {styles.label}> name</label>
+                    <input {...register("name")} id ="name" name="name" type="text" className = {styles.input}/>
+                    <p> {errors.name?.message} </p>
+                </div>
+                <div>
+                    <label htmlFor="age" className = {styles.label}> age</label>
+                    <input {...register("age")} id ="age" name="age" type="text" className = {styles.input}/>
+                    <p> {errors.age?.message}</p>
+
+                </div>
+                <div>
+                    <label htmlFor="address" className = {styles.label}> address</label>
+                    <input {...register("address")} id ="address" name="address" type="text" className = {styles.input}/>
+                    <p> {errors.address?.message}</p>
+
+                </div>
+                <button type="submit" id="submit" className = {styles.buttons}>submit form</button>
+            </form>
             <Head>
                 <title>Greetings</title>
                 <meta name="description" content="A simple Next.js/Hardhat privacy application with Semaphore." />
@@ -76,8 +138,21 @@ export default function Home() {
 
                 <div onClick={() => greet()} className={styles.button}>
                     Greet
+                    
                 </div>
+            
+
             </main>
+
+            <div className = {styles.box}>
+                {/* {event.forEach((item) => {
+                    <div>{item}</div>
+                })} */}
+                {/* {event.map((e) => <h3>{e}</h3>)} */}
+            <p className = {styles.data}>{event}</p>
+                {/* {event.forEach((item) => <h3>{item}</h3>)} */}
+      
+            </div>
         </div>
     )
 }
